@@ -23,7 +23,10 @@ void receive_messages(int clientSocket) {
   }
 }
 
-int main() {
+int main(int argc, char *argv[]) {
+
+  std::string server_ip = (argc > 1) ? argv[1] : "127.0.0.1";
+
   int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
   if (clientSocket < 0) {
     std::cerr << "Failed to create socket\n";
@@ -34,7 +37,7 @@ int main() {
   serverAddress.sin_family = AF_INET;
   serverAddress.sin_port = htons(8080);
 
-  if (inet_pton(AF_INET, "127.0.0.1", &serverAddress.sin_addr) <= 0) {
+  if (inet_pton(AF_INET, server_ip.c_str(), &serverAddress.sin_addr) <= 0) {
     std::cerr << "Invalid address\n";
     close(clientSocket);
     return 1;
@@ -47,7 +50,7 @@ int main() {
     return 1;
   }
 
-  std::cout << "Connected to server\n";
+  std::cout << "Connected to server at " << server_ip << ":" << 8080 << "\n";
 
   // receive prompt
   char buffer[1024] = {};

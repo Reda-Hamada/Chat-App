@@ -45,12 +45,28 @@ static void handle_client(int clientSocket) {
   std::string username;
   username = std::string(buffer, bytesReceived);
 
+  if (username.empty()) {
+    close(clientSocket);
+    return;
+  }
+
+  // reject duplicate
+  {
+    std::lock_guard<std::mutex> lock(users_mutex);
+    if (users.count(username)) {
+      std::string error = "User name already taken";
+      send(clientSocket, error.c_str(), sizeof(error), 0);
+      close(clientSocket);
+      return;
+    }
+  }
+
   {
     std::lock_guard<std::mutex> lock(users_mutex);
     users[username] = clientSocket;
   }
 
-  std::cout << username << " connected\n";
+  std::cout << "- " << username << " connected\n";
 
   while (true) {
     std::fill(std::begin(buffer), std::end(buffer), 0);
